@@ -68,6 +68,7 @@ module.exports = {
             user_name,
             user_email,
             user_username,
+            user_image,
             user_phone,
             user_bio,
           } = checkDataUser[0];
@@ -76,6 +77,7 @@ module.exports = {
             user_name,
             user_email,
             user_username,
+            user_image,
             user_phone,
             user_bio,
           };
