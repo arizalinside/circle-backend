@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const helper = require("../helper/index");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const { checkUser, postUser, getUserById } = require("../model/user");
+const { checkUser, postUser, getUser, getUserById } = require("../model/user");
 
 module.exports = {
   registerUser: async (request, response) => {
@@ -99,10 +99,26 @@ module.exports = {
       // return helper.response(response, 400, "Bad Request");
     }
   },
+  getAllUser: async (request, response) => {
+    try {
+      const result = await getUser();
+      // console.log(result);
+      // console.log(result);
+      if (result.length > 0) {
+        return helper.response(response, 200, "Success Get All User", result);
+      } else {
+        return helper.response(response, 400, "Cannot find user");
+      }
+    } catch (error) {
+      console.log(error);
+      // return helper.response(response, 400, "Bad Request", error);
+    }
+  },
   getUserById: async (request, response) => {
     try {
       const { id } = request.params;
       const result = await getUserById(id);
+      // console.log(result);
       if (result.length > 0) {
         return helper.response(
           response,
@@ -114,6 +130,7 @@ module.exports = {
         return helper.response(response, 400, `User By ID: ${id} is not found`);
       }
     } catch (error) {
+      // console.log(error);
       return helper.response(response, 400, "Bad Request", error);
     }
   },
