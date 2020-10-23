@@ -28,13 +28,38 @@ module.exports = {
       });
     });
   },
+  getUser: () => {
+    return new Promise((resolve, reject) => {
+      connection.query("SELECT * from user", (error, result) => {
+        if (!error) {
+          // result.map((value) => {
+          //   console.log(value);
+          //   delete value.user_password;
+          //   delete value.user_key;
+          // });
+          resolve(result);
+        } else {
+          // console.log(error);
+          reject(new Error(error));
+        }
+      });
+    });
+  },
   getUserById: (id) => {
     return new Promise((resolve, reject) => {
       connection.query(
         "SELECT * from user WHERE user_id = ?",
         id,
         (error, result) => {
-          !error ? resolve(result) : reject(new Error(error));
+          if (!error) {
+            result.map((value) => {
+              delete value.user_password;
+              delete value.user_key;
+            });
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
         }
       );
     });
