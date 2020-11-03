@@ -1,8 +1,15 @@
 const bcrypt = require("bcrypt");
 const helper = require("../helper/index");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
 const nodemailer = require("nodemailer");
-const { checkUser, postUser, getUser, getUserById } = require("../model/user");
+const {
+  checkUser,
+  postUser,
+  getUser,
+  getUserById,
+  patchUser,
+} = require("../model/user");
 
 module.exports = {
   registerUser: async (request, response) => {
@@ -132,6 +139,55 @@ module.exports = {
     } catch (error) {
       // console.log(error);
       return helper.response(response, 400, "Bad Request", error);
+    }
+  },
+  patchUserById: async (request, response) => {
+    try {
+      const { id } = request.params;
+      const { user_name, user_username, user_phone, user_bio } = request.body;
+      const setData = {
+        user_name,
+        user_username,
+        user_phone,
+        user_bio,
+        user_image: request.file.filename,
+        user_updated_at: new Date(),
+      };
+      if (user_name === "") {
+        return helper.response(response, 400, "Name cannot be empty");
+      } else if (user_username === "") {
+        return helper.response(response, 400, "Username cannot be empty");
+      } else if (user_phone === "") {
+        return helper.response(response, 400, "Phone number cannot be empty");
+      } else if (user_bio === "") {
+        return helper.response(response, 400, "Bio cannot be empty");
+      }
+
+      const checkUser = await getUserById(id);
+      // console.log(checkUser);
+      if (checkUser.length > 0) {
+        const image = checkUser[0].user_image;
+        if (image !== null) {
+          // console.log(true);
+          fs.unlink(`./uploads/${image}`, async (error) => {
+            if (error) {
+              console.log(error);
+            }
+            const result = await patchUser(setData, id);
+            return helper.response(
+              response,
+              200,
+              "User Profile successfully updated",
+              result
+            );
+          });
+        }
+      } else {
+        return helper.response(response, 404, `User By ID: ${id} not found`);
+      }
+    } catch (error) {
+      console.log(error);
+      // return helper.response(response, 400, "Bad Request");
     }
   },
 };
