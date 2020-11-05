@@ -14,6 +14,6 @@ router.get("/", authorization, getAllUser);
 router.get("/:id", authorization, getUserById);
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-router.patch("/:id", authorization, upload, patchUserById);
+router.patch("/update/:id", authorization, upload, patchUserById);
 
 module.exports = router;
