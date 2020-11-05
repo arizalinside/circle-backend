@@ -1,9 +1,10 @@
 const helper = require("../helper/index");
 const { getUserById, getUserByEmail } = require("../model/user");
 const {
-  getFriendByUser,
+  getFriendById,
   getFriendByEmail,
   postFriend,
+  deleteFriends,
 } = require("../model/friend");
 
 module.exports = {
@@ -27,6 +28,7 @@ module.exports = {
           );
         } else {
           const checkFriendData = await getUserByEmail(friend_email);
+          console.log(checkFriendData);
           if (checkFriendData.length > 0) {
             const checkFriendList = await getFriendByEmail(
               user_id,
@@ -43,14 +45,19 @@ module.exports = {
               const friend_name = checkFriendData[0].user_name;
               const setData = {
                 user_id,
+                friend_id: checkFriendData[0].user_id,
                 friend_email,
+                friend_name: checkFriendData[0].user_name,
+                friend_phone: checkFriendData[0].user_phone,
+                friend_bio: checkFriendData[0].user_bio,
+                friend_image: checkFriendData[0].user_image,
                 friend_created_at: new Date(),
               };
               const result = await postFriend(setData);
               return helper.response(
                 response,
                 200,
-                `Congratulation! now you are friends with ${friend_email}`,
+                `Congratulation! now you are friends with ${friend_name}`,
                 result
               );
             }
@@ -76,7 +83,21 @@ module.exports = {
   getFriendByUser: async (request, response) => {
     const { id } = request.params;
     try {
-      result = await getFriendByUser(id);
+      const result = await getFriendById(id);
+      console.log(result);
+      if (result.length > 0) {
+        for (let i = 0; i < result.length; i++) {
+          const getFriendData = await getUserByEmail(result[i].friend_email);
+          console.log(getFriendData);
+          result[i].friend_id = getFriendData[0].user_id;
+          result[i].friend_name = getFriendData[0].user_name;
+          result[i].friend_username = getFriendData[0].user_username;
+          result[i].friend_phone = getFriendData[0].user_phone;
+          result[i].friend_bio = getFriendData[0].user_bio;
+          result[i].friend_image = getFriendData[0].user_image;
+        }
+        // console.log(result);
+      }
       return helper.response(
         response,
         200,
@@ -84,7 +105,28 @@ module.exports = {
         result
       );
     } catch (error) {
+      // console.log(error);
       return helper.response(response, 400, "Bad Request");
+    }
+  },
+  deleteFriend: async (request, response) => {
+    const { user_id, friend_email } = request.params;
+    if (user_id === "" || user_id === undefined) {
+      console.log("id gak ada");
+      // return helper.response(response, 400, "Cannot found User ID");
+    } else if (friend_email === "" || friend_email === undefined) {
+      return helper.response(response, 400, "Cannot found Friend's Email");
+    }
+    try {
+      const checkData = await getFriendByEmail(user_id, friend_email);
+      if (checkData.length < 1) {
+        return helper.response(response, 400, "Friend's data is not found");
+      } else {
+        const result = await deleteFriends(user_id, friend_email);
+        return helper.response(response, 200, "Success delete friend", result);
+      }
+    } catch (error) {
+      console.log(error);
     }
   },
 };
