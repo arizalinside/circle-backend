@@ -27,6 +27,7 @@ module.exports = {
       user_email,
       user_username,
       user_phone,
+      user_image: "blank-profile.jpg",
       user_password: encryptPassword,
       user_created_at: new Date(),
     };
@@ -150,7 +151,6 @@ module.exports = {
         user_username,
         user_phone,
         user_bio,
-        user_image: request.file.filename,
         user_updated_at: new Date(),
       };
       if (user_name === "") {
@@ -164,22 +164,33 @@ module.exports = {
       }
 
       const checkUser = await getUserById(id);
-      // console.log(checkUser);
+      console.log(checkUser[0].user_image);
       if (checkUser.length > 0) {
-        const image = checkUser[0].user_image;
-        if (image !== null) {
+        if (request.file == undefined || request.file == "") {
+          console.log("tanpa gambar");
+          const result = await patchUser(setData, id);
+          return helper.response(
+            response,
+            200,
+            "User Profile successfully updated",
+            result
+          );
+        } else {
+          console.log("dengan gambar");
           // console.log(true);
-          fs.unlink(`./uploads/${image}`, async (error) => {
+          fs.unlink(`./uploads/${checkUser[0].user_image}`, async (error) => {
             if (error) {
               console.log(error);
+            } else {
+              setData.user_image = request.file.filename;
+              const result = await patchUser(setData, id);
+              return helper.response(
+                response,
+                200,
+                "User Profile successfully updated",
+                result
+              );
             }
-            const result = await patchUser(setData, id);
-            return helper.response(
-              response,
-              200,
-              "User Profile successfully updated",
-              result
-            );
           });
         }
       } else {
