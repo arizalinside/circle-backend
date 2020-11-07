@@ -28,7 +28,7 @@ module.exports = {
           );
         } else {
           const checkFriendData = await getUserByEmail(friend_email);
-          console.log(checkFriendData);
+          // console.log(checkFriendData);
           if (checkFriendData.length > 0) {
             const checkFriendList = await getFriendByEmail(
               user_id,
@@ -36,10 +36,11 @@ module.exports = {
             );
 
             if (checkFriendList.length > 0) {
+              const friend_name = checkFriendData[0].user_name;
               return helper.response(
                 response,
                 400,
-                `${friend_email} is already friend with you`
+                `${friend_name} is already friend with you`
               );
             } else {
               const friend_name = checkFriendData[0].user_name;
@@ -98,12 +99,7 @@ module.exports = {
         }
         // console.log(result);
       }
-      return helper.response(
-        response,
-        200,
-        `Success get friends by user ID ${id}`,
-        result
-      );
+      return helper.response(response, 200, `Success get friends`, result);
     } catch (error) {
       // console.log(error);
       return helper.response(response, 400, "Bad Request");
