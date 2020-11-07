@@ -58,7 +58,8 @@ module.exports = {
         return helper.response(response, 200, "Register Success!", result);
       }
     } catch (error) {
-      return helper.response(response, 400, "Bad Request");
+      console.log(error);
+      // return helper.response(response, 400, "Bad Request");
     }
   },
   loginUser: async (request, response) => {
@@ -91,6 +92,7 @@ module.exports = {
           };
           const token = jwt.sign(payload, "SECRET", { expiresIn: "5h" });
           payload = { ...payload, token };
+          const updateStatus = await patchUser({ user_status: 1 }, user_id);
           return helper.response(response, 200, "Login Success", payload);
         } else {
           return helper.response(response, 400, "Wrong Password");
@@ -178,20 +180,22 @@ module.exports = {
         } else {
           console.log("dengan gambar");
           // console.log(true);
-          fs.unlink(`./uploads/${checkUser[0].user_image}`, async (error) => {
-            if (error) {
-              console.log(error);
-            } else {
-              setData.user_image = request.file.filename;
-              const result = await patchUser(setData, id);
-              return helper.response(
-                response,
-                200,
-                "User Profile successfully updated",
-                result
-              );
-            }
-          });
+          setData.user_image = request.file.filename;
+          if (checkUser[0].user_image !== "") {
+            fs.unlink(`./uploads/${checkUser[0].user_image}`, async (error) => {
+              if (error) {
+                console.log(error);
+              } else {
+                const result = await patchUser(setData, id);
+                return helper.response(
+                  response,
+                  200,
+                  "User Profile successfully updated",
+                  result
+                );
+              }
+            });
+          }
         }
       } else {
         return helper.response(response, 404, `User By ID: ${id} not found`);
@@ -199,6 +203,84 @@ module.exports = {
     } catch (error) {
       console.log(error);
       // return helper.response(response, 400, "Bad Request");
+    }
+  },
+  patchLocation: async (request, response) => {
+    const { id } = request.params;
+    const { lat, lng } = request.body;
+
+    try {
+      if (lat == "" || lat == undefined || lng == "" || lng == undefined) {
+        return helper.response(
+          response,
+          400,
+          "Latitude and longtitude must be fill"
+        );
+      }
+      let setData = { lat, lng };
+
+      const checkUser = await getUserById(id);
+      if (checkUser.length > 0) {
+        const result = await patchUser(setData, id);
+        return helper.response(response, 200, "Location updated", result);
+      } else {
+        return helper.response(response, 404, `User By ID: ${id} not found`);
+      }
+    } catch (error) {
+      return helper.response(response, 400, "Bad Request");
+    }
+  },
+  patchStatus: async (request, response) => {
+    try {
+      const { id } = request.params;
+      const { user_status } = request.body;
+
+      if (
+        (user_status !== "1" && user_status !== "0") ||
+        user_status === undefined
+      ) {
+        return helper.response(response, 400, "User status must be 0 or 1");
+      }
+
+      const checkUser = await getUserById(id);
+      // console.log(checkUser);
+      if (checkUser.length > 0) {
+        const setData = { user_status };
+        const result = await patchUser({ user_status }, id);
+        const status = user_status == 1 ? "Online" : "Offline";
+
+        return helper.response(
+          response,
+          200,
+          `Success updated user status to ${status}`,
+          result
+        );
+      } else {
+        return helper.response(response, 400, `User ID ${id} not found`);
+      }
+    } catch (error) {
+      return helper.response(response, 400, "Bad Request");
+    }
+  },
+  getUserStatus: async (request, response) => {
+    try {
+      const { id } = request.params;
+      const checkUser = await getUserById(id);
+      if (checkUser.length > 0) {
+        const result = {
+          user_status: checkUser[0].user_status,
+        };
+        return helper.response(
+          response,
+          200,
+          `Success get user status with ID ${id}`,
+          result
+        );
+      } else {
+        return helper.response(response, 400, `User ID ${id} not found`);
+      }
+    } catch (error) {
+      return helper.response(response, 400, "Bad Request");
     }
   },
 };
