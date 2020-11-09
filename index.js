@@ -12,6 +12,31 @@ const io = socket(server);
 
 io.on("connection", (socket) => {
   console.log("Socket.io connect!");
+
+  socket.on("start", (data) => {
+    socket.join(data.user_id);
+  });
+
+  socket.on("selectRoom", (data) => {
+    socket.join(data.roomchat_id);
+  });
+
+  socket.on("changeRoom", async (data) => {
+    await socket.leave(data.oldRoom);
+    socket.join(data.newRoom);
+  });
+
+  socket.on("roomMessage", (data) => {
+    io.to(data.roomchat_id).emit("chatMessage", data);
+  });
+
+  socket.on("notif", (data) => {
+    socket.broadcast.to(data.getter_id).emit("notifMessage", data);
+  });
+
+  socket.on("typing", (data) => {
+    socket.broadcast.to(data.room_id).emit("typingMessage", data.user_name);
+  });
 });
 
 app.use(cors());
