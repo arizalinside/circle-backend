@@ -60,6 +60,6 @@ app.get("*", (request, respond) => {
   respond.status(404).send("Path Not Found !");
 });
 
-server.listen(3000, () => {
-  console.log("Listening on Port 3000");
+server.listen(process.env.PORT, process.env.IP, () => {
+  console.log(`Express app is listening on host: ${process.env.IP} and port: ${process.env.PORT}`);
 });
